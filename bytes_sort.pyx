@@ -1,13 +1,13 @@
-from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release, PyBUF_SIMPLE
+from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release, PyBUF_SIMPLE, PyBUF_READ, PyBUF_WRITE
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AS_STRING
-from libc.stdint cimport uint8_t
+from libc.stdint cimport uint8_t, uint64_t
 from libc.string cimport memset
 
 
 # cython: language_level=3
 # cython: binding=True
 
-cdef _counting_sort(Py_buffer *buffer, void **out_ptr):
+cdef void _counting_sort(Py_buffer *buffer, uint8_t *out_ptr):
     cdef Py_ssize_t[256] count_array
     memset(&count_array, 0, sizeof(Py_ssize_t) * 256)
     cdef Py_ssize_t i
@@ -24,7 +24,7 @@ cdef _counting_sort(Py_buffer *buffer, void **out_ptr):
     for j in range(256):
         count = count_array[j]
         if count > 0:
-            memset(out_ptr[index], j, count)
+            memset(&out_ptr[index], j, count)
             index += count
 
 
@@ -37,10 +37,11 @@ def bytes_sort(b):
     PyObject_GetBuffer(b, buffer, PyBUF_SIMPLE)
 
     cdef bytes retval = PyBytes_FromStringAndSize(NULL, buffer.len)
-    cdef void *out_ptr = <void *>PyBytes_AS_STRING(retval)
+    cdef uint8_t *out_ptr = <uint8_t *>PyBytes_AS_STRING(retval)
 
     try:
-        _counting_sort(buffer, &out_ptr)
+        _counting_sort(buffer, out_ptr)
+        return retval
     finally:
         PyBuffer_Release(buffer)
 
@@ -49,10 +50,11 @@ def bytearray_sort_inplace(ba):
     cdef Py_buffer buffer_data
     cdef Py_buffer* buffer = &buffer_data
     # Cython makes sure error is handled when acquiring buffer fails.
-    PyObject_GetBuffer(ba, buffer, PyBUF_SIMPLE)
+    PyObject_GetBuffer(ba, buffer, PyBUF_READ & PyBUF_WRITE)
+    cdef uint8_t* out_ptr = <uint8_t *>buffer.buf
 
     try:
-        _counting_sort(buffer, &buffer.buf)
+        _counting_sort(buffer, out_ptr)
     finally:
         PyBuffer_Release(buffer)
 
