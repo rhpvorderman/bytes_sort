@@ -12,6 +12,7 @@ cdef void _counting_sort(Py_buffer *buffer, uint8_t *out_ptr):
     memset(&count_array, 0, sizeof(Py_ssize_t) * 256)
     cdef Py_ssize_t i
     cdef int j
+    cdef int k
     cdef Py_ssize_t index = 0
     cdef Py_ssize_t count
     cdef uint8_t *values = <uint8_t *>buffer.buf
@@ -24,8 +25,9 @@ cdef void _counting_sort(Py_buffer *buffer, uint8_t *out_ptr):
     for j in range(256):
         count = count_array[j]
         if count > 0:
-            memset(&out_ptr[index], j, count)
-            index += count
+            for k in range(count):
+                out_ptr[index] = j
+                index += 1
 
 
 def bytes_sort(b):
