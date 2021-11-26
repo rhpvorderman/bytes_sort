@@ -1,6 +1,6 @@
-from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release, PyBUF_SIMPLE, PyBUF_READ, PyBUF_WRITE
+from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release, PyBUF_SIMPLE
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AS_STRING
-from libc.stdint cimport uint8_t, uint64_t
+from libc.stdint cimport uint8_t
 from libc.string cimport memset
 
 
@@ -52,7 +52,7 @@ def bytearray_sort_inplace(ba):
     cdef Py_buffer buffer_data
     cdef Py_buffer* buffer = &buffer_data
     # Cython makes sure error is handled when acquiring buffer fails.
-    PyObject_GetBuffer(ba, buffer, PyBUF_READ & PyBUF_WRITE)
+    PyObject_GetBuffer(ba, buffer, PyBUF_SIMPLE)
     cdef uint8_t* out_ptr = <uint8_t *>buffer.buf
 
     try:
