@@ -21,7 +21,7 @@ cdef void _counting_sort(Py_buffer *buffer, uint8_t *out_ptr):
     for i in range(buffer.len):
         count_array[values[i]] += 1
 
-    # Output the values sorted in to the out_pointer.
+    # Output the values sorted into the out_pointer.
     for j in range(256):
         count = count_array[j]
         if count > 0:
